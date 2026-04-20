@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>二等無人航空機操縦者 確認テスト</title>
+  <link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="inner">
+      <h1>🛩 二等無人航空機操縦者 確認テスト</h1>
+      <nav>
+        <a href="/">トップ</a>
+        <a href="/dashboard.html">ダッシュボード</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="card">
+      <h2>受講者情報の入力</h2>
+      <p class="muted">
+        お名前と受講者ID（任意）を入力して、受講する分野を選択してください。
+        結果は自動的に集計され、講師のダッシュボードに反映されます。
+      </p>
+
+      <form id="start-form" autocomplete="off">
+        <div class="form-row">
+          <label for="name">お名前（必須）</label>
+          <input class="input" type="text" id="name" required maxlength="40" placeholder="例：山田 太郎">
+        </div>
+        <div class="form-row">
+          <label for="student_id">受講者ID（任意）</label>
+          <input class="input" type="text" id="student_id" maxlength="30" placeholder="例：D2025-001">
+        </div>
+        <div class="form-row">
+          <label for="chapter">出題分野</label>
+          <select id="chapter">
+            <option value="chapter2" selected>第2章 無人航空機操縦者の心得（50問）</option>
+          </select>
+          <p class="muted">※ 他の章は今後追加予定です。</p>
+        </div>
+
+        <button type="submit" class="btn">テストを開始する</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h3>テストについて</h3>
+      <ul>
+        <li>全50問・4択式。制限時間はありません。</li>
+        <li>最後に結果画面で正誤と解説が表示されます。</li>
+        <li>結果は自動送信され、講師のダッシュボードで集計されます。</li>
+      </ul>
+    </div>
+  </main>
+
+  <!--
+    Netlify Forms 検知用の隠しフォーム。
+    ビルド時にこの form が Netlify にスキャンされ、Forms として登録される。
+    JS 側では fetch で同名フォームに application/x-www-form-urlencoded で POST する。
+  -->
+  <form name="quiz-results" data-netlify="true" netlify-honeypot="bot-field" hidden>
+    <input type="text" name="bot-field">
+    <input type="text" name="name">
+    <input type="text" name="student_id">
+    <input type="text" name="chapter">
+    <input type="text" name="score">
+    <input type="text" name="total">
+    <input type="text" name="percentage">
+    <input type="text" name="duration_sec">
+    <input type="text" name="submitted_at">
+    <textarea name="details"></textarea>
+  </form>
+
+  <footer>
+    二等無人航空機操縦者 学科試験対策（教則 第2章）／ Deployable on Netlify
+  </footer>
+
+  <script src="/assets/js/common.js"></script>
+  <script>
+    document.getElementById('start-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var name = document.getElementById('name').value.trim();
+      var sid  = document.getElementById('student_id').value.trim();
+      var chapter = document.getElementById('chapter').value;
+      if (!name) return;
+      DroneQuiz.saveSession({ name: name, student_id: sid, chapter: chapter });
+      window.location.href = '/quiz.html?chapter=' + encodeURIComponent(chapter);
+    });
+  </script>
+</body>
+</html>

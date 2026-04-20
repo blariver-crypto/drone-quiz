@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>講師ダッシュボード</title>
+  <link rel="stylesheet" href="/assets/css/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="inner">
+      <h1>📊 講師ダッシュボード</h1>
+      <nav>
+        <a href="/">トップ</a>
+        <a href="/dashboard.html">ダッシュボード</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="card">
+      <div class="flex" style="justify-content:space-between">
+        <div>
+          <h2 style="margin-bottom:4px">受験結果ダッシュボード</h2>
+          <p class="muted" style="margin:0">
+            Netlify Forms に蓄積された受験結果を集計表示します。
+            Netlify Function 未設定時はこの端末の localStorage の履歴のみを表示します。
+          </p>
+        </div>
+        <div class="flex">
+          <select id="chapter-filter">
+            <option value="">全分野</option>
+            <option value="chapter2" selected>第2章 無人航空機操縦者の心得</option>
+          </select>
+          <button class="btn btn-outline" id="btn-refresh" type="button">再読み込み</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="stat-row">
+        <div class="stat"><div class="label">受験者数（延べ）</div><div class="num" id="k-attempts">0</div></div>
+        <div class="stat"><div class="label">ユニーク受講者</div><div class="num" id="k-unique">0</div></div>
+        <div class="stat"><div class="label">平均点（％）</div><div class="num" id="k-avg">—</div></div>
+        <div class="stat"><div class="label">最高点（％）</div><div class="num" id="k-max">—</div></div>
+      </div>
+
+      <div class="tabs">
+        <div class="tab active" data-tab="students">受講者別 点数一覧</div>
+        <div class="tab" data-tab="sections">分野別 正答率</div>
+        <div class="tab" data-tab="wrong">間違いランキング</div>
+        <div class="tab" data-tab="history">個人履歴</div>
+      </div>
+
+      <!-- Students table -->
+      <section id="tab-students">
+        <table id="students-table">
+          <thead>
+            <tr>
+              <th>#</th><th>受講者名</th><th>受講者ID</th>
+              <th>最新受験日</th><th>最新得点</th><th>平均</th><th>受験回数</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <!-- Sections -->
+      <section id="tab-sections" class="hidden">
+        <p class="muted">全受験結果を合算した、節ごとの正答率です。</p>
+        <table id="sections-table">
+          <thead><tr><th>節</th><th>名称</th><th>正答率</th><th>回答数</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <!-- Wrong ranking -->
+      <section id="tab-wrong" class="hidden">
+        <p class="muted">全受験結果において、正答率の低かった問題トップ20です。</p>
+        <table id="wrong-table">
+          <thead><tr><th>#</th><th>問題ID</th><th>節</th><th>問題文</th><th>正答率</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <!-- History -->
+      <section id="tab-history" class="hidden">
+        <div class="form-row">
+          <label for="history-user">受講者を選択</label>
+          <select id="history-user"></select>
+        </div>
+        <div id="history-chart"></div>
+        <table id="history-table">
+          <thead><tr><th>#</th><th>受験日時</th><th>分野</th><th>得点</th><th>正答率</th><th>所要時間</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </section>
+    </div>
+
+    <div class="card">
+      <h3>データソースについて</h3>
+      <p class="muted" id="source-status">確認中...</p>
+      <p class="muted">
+        管理者は Netlify サイト設定の <strong>Environment variables</strong> に
+        <code>NETLIFY_API_TOKEN</code>（Personal access token）と <code>NETLIFY_SITE_ID</code> を
+        設定することで、全受講者の結果をダッシュボードで参照できます。
+      </p>
+    </div>
+  </main>
+
+  <footer>
+    二等無人航空機操縦者 学科試験対策 / Dashboard
+  </footer>
+
+  <script src="/assets/js/common.js"></script>
+  <script src="/assets/js/dashboard.js"></script>
+</body>
+</html>

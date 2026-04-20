@@ -1,0 +1,19 @@
+# Netlify site configuration
+# Deploy with:  netlify deploy --prod   (or connect this repo in the Netlify UI)
+
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+# 将来章が増えても /data/*.json をそのまま配信できるよう MIME を固定
+[[headers]]
+  for = "/data/*.json"
+  [headers.values]
+    Content-Type = "application/json; charset=utf-8"
+    Cache-Control = "no-store"
+
+# Functions エンドポイントのパスを /api/* にも別名で公開（任意）
+[[redirects]]
+  from = "/api/submissions"
+  to = "/.netlify/functions/get-submissions"
+  status = 200
