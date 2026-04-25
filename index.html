@@ -38,8 +38,21 @@
           <label for="chapter">出題分野</label>
           <select id="chapter">
             <option value="chapter2" selected>第2章 無人航空機操縦者の心得（50問）</option>
+            <option value="chapter3">第3章 無人航空機に関する規則（最大100問）</option>
           </select>
-          <p class="muted">※ 他の章は今後追加予定です。</p>
+          <p class="muted" id="chapter-hint">※ 第2章は50問、第3章は50問または100問から選択できます。</p>
+        </div>
+        <div class="form-row" id="count-row">
+          <label>出題数</label>
+          <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+            <label class="choice" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px">
+              <input type="radio" name="count" value="50" checked> 50問
+            </label>
+            <label class="choice" id="count-100-label" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px">
+              <input type="radio" name="count" value="100" id="count-100"> 100問
+            </label>
+          </div>
+          <p class="muted" id="count-hint">※ 100問モードはランダム抽出です（第3章のみ選択可能）。</p>
         </div>
 
         <button type="submit" class="btn">テストを開始する</button>
@@ -49,7 +62,8 @@
     <div class="card">
       <h3>テストについて</h3>
       <ul>
-        <li>全50問・4択式。制限時間はありません。</li>
+        <li>4択式・制限時間なし。出題数は分野ごとに選択できます。</li>
+        <li>100問モードでは問題プールからランダム抽出されます。</li>
         <li>最後に結果画面で正誤と解説が表示されます。</li>
         <li>結果は自動送信され、講師のダッシュボードで集計されます。</li>
       </ul>
@@ -66,6 +80,7 @@
     <input type="text" name="name">
     <input type="text" name="student_id">
     <input type="text" name="chapter">
+    <input type="text" name="count">
     <input type="text" name="score">
     <input type="text" name="total">
     <input type="text" name="percentage">
@@ -80,14 +95,43 @@
 
   <script src="/assets/js/common.js"></script>
   <script>
+    var chapterSel = document.getElementById('chapter');
+    var count100Input = document.getElementById('count-100');
+    var count100Label = document.getElementById('count-100-label');
+    var countHint = document.getElementById('count-hint');
+
+    // 章ごとに 100 問モードの可否を切り替える
+    function updateCountUI() {
+      var ch = chapterSel.value;
+      if (ch === 'chapter3') {
+        count100Input.disabled = false;
+        count100Label.style.opacity = '1';
+        count100Label.style.cursor = 'pointer';
+        countHint.textContent = '※ 100問モードはランダム抽出です（第3章のみ選択可能）。';
+      } else {
+        // 第2章は50問のみ
+        count100Input.disabled = true;
+        count100Input.checked = false;
+        document.querySelector('input[name=count][value="50"]').checked = true;
+        count100Label.style.opacity = '0.5';
+        count100Label.style.cursor = 'not-allowed';
+        countHint.textContent = '※ 第2章は50問のみです。100問モードは第3章で選択できます。';
+      }
+    }
+    chapterSel.addEventListener('change', updateCountUI);
+    updateCountUI();
+
     document.getElementById('start-form').addEventListener('submit', function(e) {
       e.preventDefault();
       var name = document.getElementById('name').value.trim();
       var sid  = document.getElementById('student_id').value.trim();
-      var chapter = document.getElementById('chapter').value;
+      var chapter = chapterSel.value;
+      var countEl = document.querySelector('input[name=count]:checked');
+      var count = countEl ? countEl.value : '50';
       if (!name) return;
-      DroneQuiz.saveSession({ name: name, student_id: sid, chapter: chapter });
-      window.location.href = '/quiz.html?chapter=' + encodeURIComponent(chapter);
+      DroneQuiz.saveSession({ name: name, student_id: sid, chapter: chapter, count: count });
+      window.location.href = '/quiz.html?chapter=' + encodeURIComponent(chapter)
+        + '&count=' + encodeURIComponent(count);
     });
   </script>
 </body>

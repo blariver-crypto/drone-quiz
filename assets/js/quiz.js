@@ -4,6 +4,8 @@
   var D = window.DroneQuiz;
   var session = D.loadSession();
   var chapterId = D.getParam('chapter') || 'chapter2';
+  var requestedCount = parseInt(D.getParam('count') || session.count || '50', 10);
+  if (isNaN(requestedCount) || requestedCount <= 0) requestedCount = 50;
 
   if (!session.name) {
     alert('受講者名が未入力です。トップに戻ります。');
@@ -25,11 +27,17 @@
 
   D.loadChapter(chapterId).then(function (data) {
     state.chapterMeta = data;
-    state.questions = data.questions;
+    var pool = data.questions || [];
+    // 出題数がプールより少ない場合はランダム抽出（多い場合はプール全件）
+    var actualCount = Math.min(requestedCount, pool.length);
+    state.questions = (actualCount < pool.length)
+      ? D.shuffle(pool).slice(0, actualCount)
+      : pool.slice();
     state.answers = new Array(state.questions.length).fill(null);
 
     document.getElementById('p-name').textContent = session.name;
-    document.getElementById('p-chapter').textContent = data.title;
+    document.getElementById('p-chapter').textContent = data.title
+      + '（' + state.questions.length + '問）';
     document.getElementById('p-total').textContent = state.questions.length;
 
     loadingView.classList.add('hidden');
@@ -169,6 +177,7 @@
       student_id: session.student_id || '',
       chapter: chapterId,
       chapter_title: state.chapterMeta.title,
+      count: qs.length,
       score: score,
       total: qs.length,
       percentage: pct,

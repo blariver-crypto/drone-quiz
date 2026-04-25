@@ -35,6 +35,7 @@
       name: record.name || '',
       student_id: record.student_id || '',
       chapter: record.chapter || '',
+      count: String(record.count != null ? record.count : record.total),
       score: String(record.score),
       total: String(record.total),
       percentage: String(record.percentage),

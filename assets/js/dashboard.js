@@ -3,10 +3,12 @@
   'use strict';
   var D = window.DroneQuiz;
 
+  var ALL_CHAPTERS = ['chapter2', 'chapter3'];
+
   var state = {
     records: [],    // 全受験履歴
-    questions: {},  // chapter -> questions array
-    filterChapter: 'chapter2',
+    questions: {},  // chapter -> chapter meta (data with .questions, .sections)
+    filterChapter: '',
     dataSource: 'localStorage'
   };
 
@@ -57,7 +59,7 @@
           '<span style="color:var(--muted)">※ Netlify Function 未設定、または環境変数未設定です。</span>';
       })
       .then(function () {
-        return loadQuestions('chapter2');
+        return Promise.all(ALL_CHAPTERS.map(loadQuestions));
       })
       .then(function () {
         render();
@@ -71,13 +73,42 @@
     }).catch(function () { /* ignore */ });
   }
 
+  // 章フィルタが「全分野」のときに使えるよう、複数章のメタを統合
+  function combinedMeta() {
+    var sections = {};
+    var questions = [];
+    ALL_CHAPTERS.forEach(function (ch) {
+      var m = state.questions[ch];
+      if (!m) return;
+      Object.keys(m.sections || {}).forEach(function (k) {
+        sections[k] = m.sections[k];
+      });
+      (m.questions || []).forEach(function (q) { questions.push(q); });
+    });
+    return { sections: sections, questions: questions };
+  }
+
+  function activeMeta() {
+    if (state.filterChapter && state.questions[state.filterChapter]) {
+      return state.questions[state.filterChapter];
+    }
+    return combinedMeta();
+  }
+
+  var CHAPTER_TITLES = {
+    chapter2: '第2章 無人航空機操縦者の心得',
+    chapter3: '第3章 無人航空機に関する規則'
+  };
+
   function normalizeRecord(r) {
     // Netlify Forms submission から返ってくる場合は data ネストなしにしておく
+    var ch = r.chapter || 'chapter2';
     var rec = {
       name: r.name || '',
       student_id: r.student_id || '',
-      chapter: r.chapter || 'chapter2',
-      chapter_title: r.chapter_title || '',
+      chapter: ch,
+      chapter_title: r.chapter_title || CHAPTER_TITLES[ch] || ch,
+      count: Number(r.count) || 0,
       score: Number(r.score) || 0,
       total: Number(r.total) || 0,
       percentage: Number(r.percentage) || 0,
@@ -166,8 +197,8 @@
   }
 
   function renderSections(rs) {
-    var meta = state.questions[state.filterChapter || 'chapter2'];
-    var sectionNames = (meta && meta.sections) || { '2.1': '操縦者の役割と責任', '2.2': '安全な飛行の確保', '2.3': '事故が起きた時の対応' };
+    var meta = activeMeta();
+    var sectionNames = (meta && meta.sections) || {};
     var agg = {};
     rs.forEach(function (r) {
       (r.details || []).forEach(function (d) {
@@ -201,7 +232,7 @@
   }
 
   function renderWrong(rs) {
-    var meta = state.questions[state.filterChapter || 'chapter2'];
+    var meta = activeMeta();
     if (!meta) return;
     var qMap = {};
     (meta.questions || []).forEach(function (q) { qMap[q.id] = q; });
